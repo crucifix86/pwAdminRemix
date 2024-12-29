@@ -1,0 +1,965 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<application name="IWEB" rpcbasedefault="Rpc">
+
+	<roleid type="int" />
+	<RoleConfig>
+		<variable name="base" type="GRoleBase" />
+		<variable name="status" type="GRoleStatus" />
+		<variable name="pocket" type="GRolePocket" />
+		<variable name="equipment" type="GRoleEquipment" />
+		<variable name="storehouse" type="GRoleStorehouse" />
+		<variable name="task" type="GRoleTask" />
+	</RoleConfig>
+
+	<protocol name="SysRecoveredObjMail" type="4219" maxsize="4096"
+		prior="1">
+		<variable name="tid" type="int" />
+		<variable name="sys_type" type="byte" /> <!-- NPC or Bidding-system -->
+		<variable name="receiver" type="int" />
+		<variable name="title" type="Octets" />
+		<variable name="context" type="Octets" /> <!-- max context length is 400 bytes -->
+		<variable name="obj" type="Octets" attr="ref" />
+		<variable name="checksum" type="Octets" attr="ref" />
+	</protocol>
+	<protocol name="SysRecoveredObjMail_Re" type="4220" maxsize="4096"
+		prior="1">
+		<variable name="retcode" type="short" />
+		<variable name="tid" type="int" />
+	</protocol>
+	<protocol debug="0" name="AnnounceAuthdVersion" maxsize="16"
+		prior="1" type="137">
+		<variable name="au_version" type="int" />
+	</protocol>
+	<protocol debug="0" name="DisableAutolock" maxsize="512"
+		prior="1" type="8007">
+		<variable name="userid" type="int" />
+	</protocol>
+	<rpcdata name="QueryUseridArg">
+		<variable name="rolename" type="Octets" attr="ref" />
+	</rpcdata>
+	<rpcdata name="QueryUseridRes">
+		<variable name="result" type="int" default="0" />
+		<variable name="userid" type="int" default="0" />
+		<variable name="roleid" type="int" default="0" />
+		<variable name="level" type="int" default="0" />
+	</rpcdata>
+	<rpc debug="0" name="QueryUserid" maxsize="256" type="8001"
+		argument="QueryUseridArg" result="QueryUseridRes" prior="1" timeout="10" />
+	<protocol debug="0" name="AnnounceChallengeAlgo" maxsize="16"
+		prior="1" type="136">
+		<variable name="challenge_algo" type="byte" />
+	</protocol>
+
+	<protocol debug="0" name="WorldChat" maxsize="1024" prior="1"
+		type="133"> <!-- link server to player -->
+		<variable name="channel" type="byte" />
+		<variable name="emotion" type="byte" />
+		<variable name="roleid" type="int" />
+		<variable name="name" type="Octets" attr="ref" />
+		<variable name="msg" type="Octets" attr="ref" />
+		<variable name="data" type="Octets" attr="ref" />
+	</protocol>
+	<protocol debug="0" name="SetMaxOnlineNum" maxsize="64" prior="1"
+		type="373">
+		<variable name="maxnum" type="int" />
+		<variable name="fake_maxnum" type="int" />
+	</protocol>
+	<protocol debug="0" name="SetMaxOnlineNum_Re" maxsize="64"
+		prior="1" type="374">
+		<variable name="retcode" type="int" />
+	</protocol>
+	<rpcdata name="GetMaxOnlineNumArg">
+		<variable name="padding" type="int" />
+	</rpcdata>
+	<rpcdata name="GetMaxOnlineNumRes">
+		<variable name="retcode" type="int" />
+		<variable name="maxnum" type="int" />
+		<variable name="fake_maxnum" type="int" />
+		<variable name="curnum" type="int" />
+	</rpcdata>
+	<rpc debug="0" name="GetMaxOnlineNum" maxsize="64" prior="1" type="375"
+		argument="GetMaxOnlineNumArg" result="GetMaxOnlineNumRes" timeout="10" />
+	<rpcdata name="GMGetGameAttriArg">
+		<variable name="gmroleid" type="int" />
+		<variable name="localsid" type="int" />
+		<variable name="attribute" type="byte" />
+	</rpcdata>
+	<rpcdata name="GMGetGameAttriRes">
+		<variable name="value" type="Octets" />
+	</rpcdata>
+	<rpc name="GMGetGameAttri" argument="GMGetGameAttriArg" result="GMGetGameAttriRes"
+		maxsize="1024" type="376" prior="1" timeout="10" />
+	<rpcdata name="GMSetGameAttriArg">
+		<variable name="gmroleid" type="int" />
+		<variable name="localsid" type="int" />
+		<variable name="attribute" type="byte" />
+		<variable name="value" type="Octets" />
+	</rpcdata>
+	<rpcdata name="GMSetGameAttriRes">
+		<variable name="retcode" type="int" />
+	</rpcdata>
+	<rpc name="GMSetGameAttri" argument="GMSetGameAttriArg" result="GMSetGameAttriRes"
+		maxsize="1024" type="377" prior="1" timeout="10" />
+
+	<rpcdata name="ForbidUserArg">
+		<variable name="operation" type="byte" default="0" /><!--0 query, 
+			1 forbid, 2 unforbid -->
+		<variable name="gmuserid" type="int" default="-1" />
+		<variable name="source" type="int" default="0" />
+		<variable name="userid" type="int" default="-1" />
+		<variable name="time" type="int" default="0" />
+		<variable name="reason" type="Octets" attr="ref" default="Octets()" />
+	</rpcdata>
+	<rpcdata name="ForbidUserRes">
+		<variable name="retcode" type="int" default="0" />
+		<variable name="forbid" type="GRoleForbid" attr="ref" />
+	</rpcdata>
+	<rpc debug="0" name="ForbidUser" type="8004" argument="ForbidUserArg"
+		result="ForbidUserRes" maxsize="256" prior="1" timeout="40" />
+
+	<rpcdata name="DBModifyRoleDataArg">
+		<variable name="roleid" type="int" />
+		<variable name="mask" type="int" default="0" />
+		<variable name="level" type="int" default="0" />
+		<variable name="exp" type="long" default="0" />
+		<variable name="pocket_money" type="int" default="0" />
+		<variable name="store_money" type="int" default="0" />
+		<variable name="pkvalue" type="int" default="0" />
+		<variable name="reputation" type="int" default="0" />
+		<variable name="potential" type="int" default="0" />
+		<variable name="occupation" type="int" default="0" />
+	</rpcdata>
+	<rpcdata name="DBModifyRoleDataRes">
+		<variable name="retcode" type="int" default="-1" />
+		<variable name="total_money" type="long" default="0" />
+	</rpcdata>
+	<rpc debug="0" name="DBModifyRoleData" type="8005" argument="DBModifyRoleDataArg"
+		result="DBModifyRoleDataRes" maxsize="1024" prior="1" timeout="30" />
+
+
+
+	<protocol debug="0" name="AnnounceServerAttribute" maxsize="64"
+		prior="1" type="132">
+		<variable name="attr" type="int" /> <!-- server attributes -->
+		<variable name="freecreatime" type="int" />
+		<variable name="exp_rate" type="byte" default="0" />
+	</protocol>
+	<protocol debug="0" name="GMControlGame" maxsize="256" prior="1"
+		type="380">
+		<variable name="xid" type="int" />
+		<variable name="worldtag" type="int" />
+		<variable name="command" type="Octets" />
+	</protocol>
+	<rpcdata name="GMControlGameRes" attr="vector">
+		<variable name="gsid" type="int" />
+		<variable name="retcode" type="int" default="0" />
+	</rpcdata>
+	<!-- enum { DEFAULT_GAMECONTROL_TIMEOUT = 15 }; enum { GAMECONTROL_TIMEOUT 
+		= -2, GAMECONTROL_SENDFAIL = -1 , GAMECONTROL_SUCCESS = 0, GAMECONTROL_FAIL 
+		= 1 }; enum { GAMECONTROL_INVALID_WORLDTAG = -1 }; -->
+	<protocol debug="0" name="GMControlGame_Re" maxsize="4096"
+		prior="1" type="381">
+		<variable name="xid" type="int" />
+		<variable name="retcode" type="int" />
+		<variable name="resvector" type="GMControlGameResVector" />
+	</protocol>
+
+	<protocol debug="0" name="GMRestartServer" maxsize="64"
+		priority="1" type="358">
+		<variable name="gmroleid" type="int" />
+		<variable name="localsid" type="int" />
+		<variable name="gsid" type="int" />
+		<variable name="restart_time" type="int" />
+	</protocol>
+	<protocol debug="0" name="GMRestartServer_Re" maxsize="64"
+		priority="1" type="359">
+		<variable name="retcode" type="int" />
+		<variable name="gmroleid" type="int" />
+		<variable name="localsid" type="int" />
+		<variable name="gsid" type="int" />
+	</protocol>
+	<protocol debug="0" name="GMPrivilegeChange" maxsize="32"
+		priority="1" type="122">
+		<variable name="userid" type="int" />
+	</protocol>
+	<protocol debug="0" name="PublicChat" maxsize="1024" priority="1"
+		type="79"> <!--player to linkserver to gameserver -->
+		<variable name="channel" type="byte" />
+		<variable name="emotion" type="byte" />
+		<variable name="roleid" type="int" />
+		<variable name="localsid" type="int" />
+		<variable name="msg" type="Octets" attr="ref" default="Octets(0)" />
+		<variable name="data" type="Octets" attr="ref" />
+	</protocol>
+	<protocol debug="0" name="ChatBroadCast" maxsize="10240"
+		priority="1" type="120"> <!-- game/delivery server to link server -->
+		<variable name="channel" type="byte" />
+		<variable name="emotion" type="byte" />
+		<variable name="srcroleid" type="int" />
+		<variable name="msg" type="Octets" attr="ref" default="Octets(0)" />
+		<variable name="data" type="Octets" attr="ref" />
+	</protocol>
+	<protocol debug="0" name="ForwardChat" maxsize="512" prior="1"
+		type="8000">
+		<variable name="zoneid" type="int" />
+		<variable name="lineid" type="int" />
+		<variable name="userid" type="int" />
+		<variable name="roleid" type="int" />
+		<variable name="name" type="Octets" attr="ref" />
+		<variable name="msg" type="Octets" attr="ref" />
+	</protocol>
+
+	<rpcdata name="RpcRetcode">
+		<variable name="retcode" type="int" default="0" />
+	</rpcdata>
+	<rpcdata name="RoleId">
+		<variable name="id" type="int" default="0" />
+	</rpcdata>
+	<protocol debug="0" name="QueryUserPrivilege_Re" type="507"
+		maxsize="512" prior="101">
+		<variable name="userid" type="int" />
+		<variable name="auth" type="ByteVector" attr="ref" />
+	</protocol>
+
+	<rpcdata name="UserID">
+		<variable name="id" type="int" default="0" />
+	</rpcdata>
+	<rpcdata name="StockLog" attr="vector">
+		<variable name="tid" type="int" default="0" />
+		<variable name="time" type="int" default="0" />
+		<variable name="result" type="short" default="0" />
+		<variable name="volume" type="short" default="0" />
+		<variable name="cost" type="int" default="0" />
+	</rpcdata>
+	<rpcdata name="GPair" attr="vector">
+		<variable name="key" type="int" default="0" />
+		<variable name="value" type="int" default="0" />
+	</rpcdata>
+	<rpcdata name="User">
+		<variable name="logicuid" type="int" default="0" />
+		<variable name="rolelist" type="int" default="0" />
+		<variable name="cash" type="int" default="0" />
+		<variable name="money" type="int" default="0" />
+		<variable name="cash_add" type="int" default="0" />
+		<variable name="cash_buy" type="int" default="0" />
+		<variable name="cash_sell" type="int" default="0" />
+		<variable name="cash_used" type="int" default="0" />
+		<variable name="add_serial" type="int" default="0" />
+		<variable name="use_serial" type="int" default="0" />
+		<variable name="exg_log" type="StockLogVector" default="StockLogVector()" />
+		<variable name="addiction" type="Octets" attr="ref" />
+		<variable name="cash_password" type="Octets" default="0" />
+		<variable name="autolock" type="GPairVector" default="GPairVector()" />
+		<variable name="status" type="byte" default="0" />
+		<variable name="forbid" type="GRoleForbidVector" />
+		<variable name="reference" type="Octets" attr="ref" /> <!--ÏÂÏßÏµÍ³µÄÊý¾Ý´æ´¢ -->
+		<variable name="consume_reward" type="Octets" attr="ref" /> <!--Ïû·Ñ·µºèÀû -->
+		<variable name="taskcounter" type="Octets" attr="ref" /><!--¼ÇÂ¼ÕËºÅÍê³ÉÈÎÎñµÄ´ÎÊý -->
+		<variable name="cash_sysauction" type="Octets" attr="ref" />
+		<variable name="login_record" type="Octets" attr="ref" />
+		<variable name="mall_consumption" type="Octets" attr="ref" />
+		<variable name="reserved32" type="short" default="0" />
+	</rpcdata>
+	<rpcdata name="UserRes">
+		<variable name="retcode" type="int" default="-1" />
+		<variable name="value" type="User" />
+	</rpcdata>
+	<rpcdata name="UserPair">
+		<variable name="key" type="UserID" />
+		<variable name="value" type="User" />
+	</rpcdata>
+	<rpcdata name="UserArg">
+		<variable name="id" type="int" default="0" />
+		<variable name="login_time" type="int" default="0" />
+		<variable name="login_ip" type="int" default="0" />
+	</rpcdata>
+	<rpc debug="0" name="PutUser" type="3001" argument="UserPair"
+		result="RpcRetcode" table="user" attr="put" key="key" value="value"
+		maxsize="8192" prior="1" timeout="20" />
+	<rpc debug="0" name="GetUser" type="3002" argument="UserArg"
+		result="UserRes" table="user" attr="get" retcode="retcode" value="value"
+		maxsize="8192" prior="1" timeout="30" />
+
+	<rpcdata name="GRoleForbid" attr="vector">
+		<variable name="type" type="byte" default="0" />
+		<variable name="time" type="int" default="0" />
+		<variable name="createtime" type="int" default="0" />
+		<variable name="reason" type="Octets" attr="ref" default="Octets(0)" />
+	</rpcdata>
+	<rpcdata name="GRoleBase">
+		<variable name="version" type="byte" default="1" />
+		<variable name="id" type="int" default="0" />
+		<variable name="name" type="Octets" attr="ref" default="Octets(0)" />
+		<variable name="race" type="int" default="0" />
+		<variable name="cls" type="int" default="0" />
+		<variable name="gender" type="byte" default="0" />
+		<variable name="custom_data" type="Octets" default="Octets(0)" />
+		<variable name="config_data" type="Octets" default="Octets(0)" />
+		<variable name="custom_stamp" type="int" default="0" />
+		<variable name="status" type="byte" default="0" />	<!--whether the role is ready to delete -->
+		<variable name="delete_time" type="int" default="0" /> <!--delete time -->
+		<variable name="create_time" type="int" default="0" />
+		<variable name="lastlogin_time" type="int" default="0" />
+		<variable name="forbid" type="GRoleForbidVector" />
+		<variable name="help_states" type="Octets" />
+		<variable name="spouse" type="int" default="0" />
+		<variable name="userid" type="int" default="0" />
+		<variable name="reserved1" type="int" default="0" />
+	</rpcdata>
+	<rpcdata name="GRoleStatus">
+		<variable name="version" type="byte" default="1" />
+		<variable name="level" type="int" default="0" />
+		<variable name="level2" type="int" default="0" />
+		<variable name="exp" type="int" default="0" />
+		<variable name="sp" type="int" default="0" />
+		<variable name="pp" type="int" default="0" />
+		<variable name="hp" type="int" default="0" />
+		<variable name="mp" type="int" default="0" />
+		<variable name="posx" type="float" default="0" />
+		<variable name="posy" type="float" default="0" />
+		<variable name="posz" type="float" default="0" />
+		<variable name="worldtag" type="int" default="0" />
+		<variable name="invader_state" type="int" default="0" />
+		<variable name="invader_time" type="int" default="0" />
+		<variable name="pariah_time" type="int" default="0" />
+		<variable name="reputation" type="int" default="0" />
+		<variable name="custom_status" type="Octets" />
+		<variable name="filter_data" type="Octets" />
+		<variable name="charactermode" type="Octets" />
+		<variable name="instancekeylist" type="Octets" />
+		<variable name="dbltime_expire" type="int" default="0" />
+		<variable name="dbltime_mode" type="int" default="0" />
+		<variable name="dbltime_begin" type="int" default="0" />
+		<variable name="dbltime_used" type="int" default="0" />
+		<variable name="dbltime_max" type="int" default="0" />
+		<variable name="time_used" type="int" default="0" />
+		<variable name="dbltime_data" type="Octets" />
+		<variable name="storesize" type="short" />
+		<variable name="petcorral" type="Octets" />
+		<variable name="property" type="Octets" />
+		<variable name="var_data" type="Octets" attr="ref" />
+		<variable name="skills" type="Octets" attr="ref" />
+		<variable name="storehousepasswd" type="Octets" attr="ref" />
+		<variable name="waypointlist" type="Octets" attr="ref" />
+		<variable name="coolingtime" type="Octets" attr="ref" />
+		<variable name="npc_relation" type="Octets" attr="ref" />
+		<variable name="multi_exp_ctrl" type="Octets" attr="ref" />
+		<variable name="storage_task" type="Octets" attr="ref" />
+		<variable name="faction_contrib" type="Octets" attr="ref" />
+		<variable name="force_data" type="Octets" attr="ref" />
+		<variable name="online_award" type="Octets" attr="ref" />
+		<variable name="profit_time_data" type="Octets" attr="ref" />
+		<variable name="reserved32" type="byte" default="0" />
+		<variable name="reserved4" type="int" default="0" />
+		<variable name="reserved5" type="int" default="0" />
+	</rpcdata>
+	<rpcdata name="GRoleInventory" attr="vector">
+		<variable name="id" type="int" default="0" />
+		<variable name="pos" type="int" default="-1" />
+		<variable name="count" type="int" default="0" />
+		<variable name="max_count" type="int" default="0" />
+		<variable name="data" type="Octets" attr="ref" default="Octets(0)" />
+		<variable name="proctype" type="int" default="0" />
+		<variable name="expire_date" type="int" default="0" />
+		<variable name="guid1" type="int" default="0" />
+		<variable name="guid2" type="int" default="0" />
+		<variable name="mask" type="int" default="0" />
+	</rpcdata>
+	<rpcdata name="GRoleStorehouse">
+		<variable name="capacity" type="int" default="0" />
+		<variable name="money" type="int" default="0" />
+		<variable name="items" type="GRoleInventoryVector" />
+		<variable name="size1" type="byte" default="0" />
+		<variable name="size2" type="byte" default="0" />
+		<variable name="dress" type="GRoleInventoryVector" attr="ref" />
+		<variable name="material" type="GRoleInventoryVector" attr="ref" />
+		<variable name="reserved" type="int" default="0" />
+	</rpcdata>
+	<rpcdata name="RoleInfo" attr="vector">
+		<variable name="roleid" type="int" default="-1" />
+		<variable name="gender" type="byte" default="0" />
+		<variable name="race" type="byte" default="0" />
+		<variable name="occupation" type="byte" default="0" />
+		<variable name="level" type="int" default="1" />
+		<variable name="level2" type="int" default="0" />
+		<variable name="name" type="Octets" attr="ref" default="Octets(0)" />
+		<variable name="custom_data" type="Octets" attr="ref"
+			default="Octets(0)" />
+		<variable name="equipment" type="GRoleInventoryVector"
+			default="GRoleInventoryVector()" />
+		<variable name="status" type="byte" default="0" />   <!--whether the role is ready to delete -->
+		<variable name="delete_time" type="int" default="0" />
+		<variable name="create_time" type="int" default="0" />
+		<variable name="lastlogin_time" type="int" default="0" />
+		<variable name="posx" type="float" default="0.0" />
+		<variable name="posy" type="float" default="0.0" />
+		<variable name="posz" type="float" default="0.0" />
+		<variable name="worldtag" type="int" default="0" />
+		<variable name="custom_status" type="Octets" />
+		<variable name="charactermode" type="Octets" />
+		<variable name="referrer_role" type="int" default="0" />
+		<variable name="cash_add" type="int" default="0" />
+	</rpcdata>
+	<rpcdata name="DBCreateRoleArg">
+		<variable name="userid" type="int" default="-1" />
+		<variable name="logicuid" type="int" default="0" />
+		<variable name="roleid" type="int" default="-1" />
+		<variable name="roleinfo" type="RoleInfo" />
+		<!--<variable name="real_referrer" type="int" default="0"/> <variable name="referrer_role" 
+			type="int" default="0"/> -->
+		<variable name="au_suggest_referrer" type="int" default="0" />
+		<variable name="player_suggest_referrer" type="int" default="0" />
+	</rpcdata>
+	<rpcdata name="DBCreateRoleRes">
+		<variable name="retcode" type="int" default="-1" />
+		<variable name="roleid" type="int" default="-1" />
+		<variable name="rolelist" type="int" default="0" />
+		<variable name="roleinfo" type="RoleInfo" />
+		<variable name="real_referrer" type="int" default="0" />
+		<!-- <variable name="referrer_role" type="int" default="0"/> <variable 
+			name="referrer_name" type="Octets" default="Octets()" attr="ref"/> -->
+		<variable name="refretcode" type="int" default="0" />
+	</rpcdata>
+	<rpc debug="0" name="DBCreateRole" type="3007" argument="DBCreateRoleArg"
+		result="DBCreateRoleRes" maxsize="16384" prior="1" timeout="10" />
+
+	<rpcdata name="DBDeleteRoleArg">
+		<variable name="roleid" type="int" default="-1" />
+		<variable name="create_rollback" type="byte" default="1" />  <!--whether need to response result to client -->
+	</rpcdata>
+	<rpcdata name="DBDeleteRoleRes">
+		<variable name="retcode" type="int" default="-1" />
+		<variable name="userid" type="int" default="-1" />
+		<variable name="rolelist" type="int" default="0" />
+		<variable name="faction" type="int" default="0" />
+		<variable name="rolename" type="Octets" />
+	</rpcdata>
+	<rpc debug="0" name="DBDeleteRole" type="3008" argument="DBDeleteRoleArg"
+		result="DBDeleteRoleRes" maxsize="128" prior="1" timeout="10" />
+
+	<rpcdata name="RoleBasePair">
+		<variable name="key" type="RoleId" />
+		<variable name="value" type="GRoleBase" />
+	</rpcdata>
+	<rpcdata name="RoleBaseRes">
+		<variable name="retcode" type="int" default="-1" />
+		<variable name="value" type="GRoleBase" />
+	</rpcdata>
+	<rpc debug="0" name="PutRoleBase" type="3012" argument="RoleBasePair"
+		result="RpcRetcode" table="base" attr="put" key="key" value="value"
+		maxsize="16384" prior="1" timeout="30" />
+	<rpc debug="0" name="GetRoleBase" type="3013" argument="RoleId"
+		result="RoleBaseRes" table="base" attr="get" retcode="retcode" value="value"
+		maxsize="16384" prior="1" timeout="10" />
+
+	<rpcdata name="RoleStatusPair">
+		<variable name="key" type="RoleId" />
+		<variable name="value" type="GRoleStatus" />
+	</rpcdata>
+	<rpcdata name="RoleStatusRes">
+		<variable name="retcode" type="int" default="-1" />
+		<variable name="value" type="GRoleStatus" />
+	</rpcdata>
+	<rpc debug="0" name="PutRoleStatus" type="3014" argument="RoleStatusPair"
+		result="RpcRetcode" table="status" attr="put" key="key" value="value"
+		maxsize="16384" prior="1" timeout="10" />
+	<rpc debug="0" name="GetRoleStatus" type="3015" argument="RoleId"
+		result="RoleStatusRes" table="status" attr="get" retcode="retcode"
+		value="value" maxsize="16384" prior="1" timeout="10" />
+
+
+	<rpcdata name="RoleEquipmentPair">
+		<variable name="key" type="RoleId" />
+		<variable name="equipment" type="GRoleInventoryVector" />
+	</rpcdata>
+	<rpcdata name="RoleEquipmentRes">
+		<variable name="retcode" type="int" default="-1" />
+		<variable name="equipment" type="GRoleInventoryVector" />
+	</rpcdata>
+	<rpc debug="0" name="PutRoleEquipment" type="3016" argument="RoleEquipmentPair"
+		result="RpcRetcode" maxsize="65536" prior="1" timeout="10" />
+	<rpc debug="0" name="GetRoleEquipment" type="3017" argument="RoleId"
+		result="RoleEquipmentRes" maxsize="65536" prior="1" timeout="10" />
+
+	<rpcdata name="GRoleTask">
+		<variable name="task_data" type="Octets" attr="ref" />
+		<variable name="task_complete" type="Octets" attr="ref" />
+		<variable name="task_finishtime" type="Octets" attr="ref" />
+		<variable name="task_inventory" type="GRoleInventoryVector"
+			attr="ref" />
+	</rpcdata>
+	<rpcdata name="GRoleEquipment">
+		<variable name="inv" type="GRoleInventoryVector" />
+	</rpcdata>
+	<rpcdata name="GRoleData">
+		<variable name="base" type="GRoleBase" attr="ref" />
+		<variable name="status" type="GRoleStatus" attr="ref" />
+		<variable name="pocket" type="GRolePocket" attr="ref" />
+		<variable name="equipment" type="GRoleEquipment" attr="ref" />
+		<variable name="storehouse" type="GRoleStorehouse" attr="ref" />
+		<variable name="task" type="GRoleTask" attr="ref" />
+	</rpcdata>
+	<rpcdata name="RoleDataPair">
+		<variable name="key" type="RoleId" />
+		<variable name="overwrite" type="byte" />
+		<variable name="value" type="GRoleData" />
+	</rpcdata>
+	<rpcdata name="RoleDataRes">
+		<variable name="retcode" type="int" default="-1" />
+		<variable name="value" type="GRoleData" />
+	</rpcdata>
+	<rpc debug="0" name="PutRoleData" type="8002" argument="RoleDataPair"
+		result="RpcRetcode" maxsize="524288" prior="1" timeout="20" />
+	<rpc debug="0" name="GetRoleData" type="8003" argument="RoleId"
+		result="RoleDataRes" maxsize="524288" prior="1" timeout="30" />
+
+	<rpcdata name="RoleTaskPair">
+		<variable name="key" type="RoleId" />
+		<variable name="value" type="GRoleTask" attr="ref" />
+	</rpcdata>
+	<rpcdata name="RoleTaskRes">
+		<variable name="retcode" type="int" default="-1" />
+		<variable name="value" type="GRoleTask" attr="ref" />
+	</rpcdata>
+	<rpc debug="0" name="PutRoleTask" type="3018" argument="RoleTaskPair"
+		result="RpcRetcode" maxsize="16384" prior="1" timeout="10" />
+	<rpc debug="0" name="GetRoleTask" type="3019" argument="RoleId"
+		result="RoleTaskRes" maxsize="16384" prior="1" timeout="10" />
+
+	<rpcdata name="RoleStorehousePair">
+		<variable name="key" type="RoleId" />
+		<variable name="value" type="GRoleStorehouse" />
+	</rpcdata>
+	<rpcdata name="RoleStorehouseRes">
+		<variable name="retcode" type="int" default="-1" />
+		<variable name="value" type="GRoleStorehouse" />
+	</rpcdata>
+	<rpc debug="0" name="PutRoleStorehouse" type="3026" argument="RoleStorehousePair"
+		result="RpcRetcode" table="storehouse" attr="put" key="key" value="value"
+		maxsize="131072" prior="1" timeout="10" />
+	<rpc debug="0" name="GetRoleStorehouse" type="3027" argument="RoleId"
+		result="RoleStorehouseRes" table="storehouse" attr="get" retcode="retcode"
+		value="value" maxsize="131072" prior="1" timeout="10" />
+
+	<rpcdata name="GetRoleIdArg">
+		<variable name="rolename" type="Octets" attr="ref" default="Octets(0)" />
+		<variable name="reason" type="byte" default="0" />
+	</rpcdata>
+	<rpcdata name="GetRoleIdRes">
+		<variable name="retcode" type="int" default="-1" />
+		<variable name="roleid" type="int" default="-1" />
+	</rpcdata>
+	<rpc debug="0" name="GetRoleId" type="3033" argument="GetRoleIdArg"
+		result="GetRoleIdRes" table="rolename" attr="get" key="rolename"
+		value="roleid" retcode="retcode" maxsize="1024" prior="1" timeout="10" />
+
+	<rpcdata name="GQueryPasswdArg">
+		<variable name="account" type="Octets" default="Octets(0)" />
+		<variable name="challenge" type="Octets" default="Octets(0)" />
+		<variable name="loginip" type="int" default="0" />
+	</rpcdata>
+	<rpcdata name="GQueryPasswdRes">
+		<variable name="retcode" type="int" default="-1" />
+		<variable name="userid" type="int" default="-1" />
+		<variable name="response" type="Octets" default="Octets(0)" />
+	</rpcdata>
+	<rpc debug="1" name="GQueryPasswd" type="502" argument="GQueryPasswdArg"
+		result="GQueryPasswdRes" maxsize="128" prior="0" timeout="10" />
+	<rpcdata name="GMQueryRoleInfoRes">
+		<variable name="status" type="int" />
+	</rpcdata>
+	<rpc debug="0" name="GMQueryRoleInfo" maxsize="256" argument="RoleId"
+		result="GMQueryRoleInfoRes" type="124" prior="1" timeout="10" />
+
+
+	<protocol debug="0" name="GMForbidRole" maxsize="256" prior="1"
+		type="366">
+		<variable name="fbd_type" type="byte" />
+		<variable name="gmroleid" type="int" />
+		<variable name="localsid" type="int" />
+		<variable name="dstroleid" type="int" />
+		<variable name="forbid_time" type="int" />
+		<variable name="reason" type="Octets" attr="ref" default="Octets()" />
+	</protocol>
+	<protocol debug="0" name="GMForbidRole_Re" maxsize="64" prior="1"
+		type="367">
+		<variable name="retcode" type="int" />
+		<variable name="fbd_type" type="byte" />
+		<variable name="dstroleid" type="int" />
+		<variable name="forbid_time" type="int" />
+	</protocol>
+	<protocol debug="0" name="Report2GM" maxsize="512" priority="1"
+		type="368">
+		<variable name="roleid" type="int" />
+		<variable name="localsid" type="int" />
+		<variable name="rolename" type="Octets" attr="ref" />
+		<variable name="zoneid" type="int" />
+		<variable name="mapzone" type="Octets" attr="ref" />
+		<variable name="posx" type="float" />
+		<variable name="posy" type="float" />
+		<variable name="posz" type="float" />
+		<variable name="content" type="Octets" attr="ref" />
+		<variable name="aid" type="int" />
+		<variable name="line" type="Octets" attr="ref" />
+		<variable name="com_roleid" type="int" />
+		<variable name="com_rolename" type="Octets" attr="ref" />
+
+	</protocol>
+	<protocol debug="0" name="Complain2GM" maxsize="256" priority="1"
+		type="370">
+		<variable name="roleid" type="int" />
+		<variable name="localsid" type="int" />
+		<variable name="rolename" type="Octets" attr="ref" />
+		<variable name="comp_rolename" type="Octets" attr="ref" />
+		<variable name="zoneid" type="int" />
+		<variable name="mapzone" type="Octets" attr="ref" />
+		<variable name="posx" type="float" />
+		<variable name="posy" type="float" />
+		<variable name="posz" type="float" />
+		<variable name="content" type="Octets" attr="ref" />
+	</protocol>
+	<protocol debug="0" name="PrivateChat" maxsize="1024"
+		priority="1" type="96">
+		<variable name="channel" type="byte" />
+		<variable name="emotion" type="byte" />
+		<variable name="src_name" type="Octets" attr="ref" />
+		<variable name="srcroleid" type="int" />
+		<variable name="dst_name" type="Octets" attr="ref" />
+		<variable name="dstroleid" type="int" />
+		<variable name="msg" type="Octets" attr="ref" />
+		<variable name="data" type="Octets" attr="ref" />
+		<variable name="src_level" type="int" default="0" />
+	</protocol>
+	<protocol debug="0" name="AnnounceLinkType" maxsize="32"
+		priority="1" type="372">
+		<variable name="link_type" type="byte" />
+	</protocol>
+
+	<rpcdata name="DBVerifyMasterArg">
+		<variable name="name" type="Octets" attr="ref" />
+		<variable name="faction" type="Octets" attr="ref" />
+	</rpcdata>
+	<rpcdata name="DefFactionRes">
+		<variable name="retcode" type="int" default="-1" />
+	</rpcdata>
+	<rpc debug="0" name="DBVerifyMaster" type="4609" argument="DBVerifyMasterArg"
+		result="DefFactionRes" maxsize="128" prior="1" timeout="30" />
+
+	<protocol name="SysSendMail" type="4214" maxsize="4096" prior="1">
+		<variable name="tid" type="int" />
+		<variable name="sysid" type="int" />
+		<variable name="sys_type" type="byte" /> <!-- NPC or Bidding-system -->
+		<variable name="receiver" type="int" />
+		<variable name="title" type="Octets" />
+		<variable name="context" type="Octets" /> <!-- max context length is 400 bytes -->
+		<variable name="attach_obj" type="GRoleInventory" attr="ref" />
+		<variable name="attach_money" type="int" />
+	</protocol>
+	<protocol name="SysSendMail_Re" type="4215" maxsize="4096"
+		prior="1">
+		<variable name="retcode" type="short" />
+		<variable name="tid" type="int" />
+	</protocol>
+
+	<rpcdata name="PreCreateRoleArg">
+		<variable name="zoneid" type="int" default="-1" />
+		<variable name="userid" type="int" default="-1" />
+		<variable name="uselogic" type="int" default="0" />
+		<variable name="rolename" type="Octets" attr="ref" default="Octets(0)" />
+	</rpcdata>
+	<rpcdata name="PreCreateRoleRes">
+		<variable name="retcode" type="int" default="-1" />
+		<variable name="roleid" type="int" default="-1" />
+		<variable name="logicuid" type="int" default="0" />
+	</rpcdata>
+	<rpc debug="0" name="PreCreateRole" type="3037" argument="PreCreateRoleArg"
+		result="PreCreateRoleRes" table="unamerole" attr="get" key="rolename"
+		value="roleid" retcode="retcode" maxsize="1024" prior="1" timeout="15" />
+	<rpcdata name="PostCreateRoleArg">
+		<variable name="success" type="byte" default="1" />
+		<variable name="userid" type="int" default="-1" />
+		<variable name="zoneid" type="int" default="-1" />
+		<variable name="roleid" type="int" default="-1" />
+		<variable name="rolename" type="Octets" attr="ref" default="Octets(0)" />
+	</rpcdata>
+	<rpcdata name="PostCreateRoleRes">
+		<variable name="retcode" type="int" default="-1" />
+	</rpcdata>
+	<rpc debug="0" name="PostCreateRole" type="3038" argument="PostCreateRoleArg"
+		result="PostCreateRoleRes" table="unamerole" attr="put" key="rolename"
+		value="roleid" retcode="retcode" maxsize="1024" prior="1" timeout="15" />
+
+	<rpcdata name="PostDeleteRoleArg">
+		<variable name="userid" type="int" default="-1" />
+		<variable name="zoneid" type="int" default="-1" />
+		<variable name="roleid" type="int" default="-1" />
+		<variable name="rolename" type="Octets" attr="ref" default="Octets(0)" />
+	</rpcdata>
+	<rpcdata name="PostDeleteRoleRes">
+		<variable name="retcode" type="int" default="-1" />
+	</rpcdata>
+	<rpc debug="0" name="PostDeleteRole" type="3039" argument="PostDeleteRoleArg"
+		result="PostDeleteRoleRes" table="unamerole" attr="put" key="rolename"
+		value="roleid" retcode="retcode" maxsize="1024" prior="1" timeout="15" />
+
+	<rpcdata name="GRolePocket">
+		<variable name="capacity" type="int" default="0" />
+		<variable name="timestamp" type="int" default="0" />
+		<variable name="money" type="int" default="0" />
+		<variable name="items" type="GRoleInventoryVector" attr="ref" />
+		<variable name="reserved1" type="int" default="0" />
+		<variable name="reserved2" type="int" default="0" />
+	</rpcdata>
+	<rpcdata name="RolePocketPair">
+		<variable name="key" type="RoleId" />
+		<variable name="value" type="GRolePocket" />
+	</rpcdata>
+	<rpcdata name="RolePocketRes">
+		<variable name="retcode" type="int" default="-1" />
+		<variable name="value" type="GRolePocket" />
+	</rpcdata>
+	<rpc debug="0" name="PutRolePocket" type="3052" argument="RolePocketPair"
+		result="RpcRetcode" maxsize="131072" prior="1" timeout="20" />
+	<rpc debug="0" name="GetRolePocket" type="3053" argument="RoleId"
+		result="RolePocketRes" maxsize="131072" prior="1" timeout="30" />
+
+	<rpcdata name="IntOctets">
+		<variable name="m_int" type="int" />
+		<variable name="m_octets" type="Octets" />
+	</rpcdata>
+	<rpcdata name="GetUserRolesArg">
+		<variable name="userid" type="int" default="-1" />
+	</rpcdata>
+	<rpcdata name="GetUserRolesRes">
+		<variable name="retcode" type="int" default="-1" />
+		<variable name="roles" type="IntOctetsVector" />
+	</rpcdata>
+	<rpc debug="0" name="GetUserRoles" type="3401" argument="GetUserRolesArg"
+		result="GetUserRolesRes" table="user" attr="get" key="userid" value="roles"
+		retcode="retcode" maxsize="1024" prior="1" timeout="10" />
+
+	<rpcdata name="ClearStorehousePasswdArg">
+		<variable name="roleid" type="int" default="-1" />
+		<variable name="rolename" type="Octets" attr="ref" default="Octets(0)" />
+		<variable name="reserved" type="Octets" default="Octets(0)" />
+	</rpcdata>
+	<rpc debug="0" name="ClearStorehousePasswd" type="3402"
+		argument="ClearStorehousePasswdArg" result="RpcRetcode" maxsize="1024"
+		prior="1" timeout="15" />
+
+	<rpcdata name="CanChangeRolenameArg">
+		<variable name="rolename" type="Octets" attr="ref" default="Octets(0)" />
+		<variable name="setcanchange" type="int" default="0" />
+	</rpcdata>
+	<rpcdata name="CanChangeRolenameRes">
+		<variable name="retcode" type="int" default="-1" />
+		<variable name="roleid" type="int" default="-1" />
+	</rpcdata>
+	<rpc debug="0" name="CanChangeRolename" type="3403" argument="CanChangeRolenameArg"
+		result="CanChangeRolenameRes" table="rolename" attr="get" key="rolename"
+		value="roleid" retcode="retcode" maxsize="1024" prior="1" timeout="10" />
+
+	<rpcdata name="RenameRoleArg">
+		<variable name="roleid" type="int" default="-1" />
+		<variable name="oldname" type="Octets" attr="ref" default="Octets(0)" />
+		<variable name="newname" type="Octets" attr="ref" default="Octets(0)" />
+	</rpcdata>
+	<rpc debug="0" name="RenameRole" type="3404" argument="RenameRoleArg"
+		result="RpcRetcode" maxsize="1024" prior="1" timeout="15" />
+
+	<rpcdata name="Uid2LogicuidArg">
+		<variable name="userid" type="int" default="-1" />
+	</rpcdata>
+	<rpcdata name="Uid2LogicuidRes">
+		<variable name="retcode" type="int" default="-1" />
+		<variable name="logicuid" type="int" default="0" />
+	</rpcdata>
+	<rpc debug="0" name="Uid2Logicuid" type="3411" argument="Uid2LogicuidArg"
+		result="Uid2LogicuidRes" maxsize="1024" prior="1" timeout="15" />
+
+	<rpcdata name="Roleid2UidArg">
+		<variable name="roleid" type="int" default="-1" />
+	</rpcdata>
+	<rpcdata name="Roleid2UidRes">
+		<variable name="retcode" type="int" default="-1" />
+		<variable name="userid" type="int" default="0" />
+	</rpcdata>
+	<rpc debug="0" name="Roleid2Uid" type="3412" argument="Roleid2UidArg"
+		result="Roleid2UidRes" maxsize="1024" prior="1" timeout="15" />
+
+	<rpcdata name="RolenameExistsArg">
+		<variable name="rolename" type="Octets" attr="ref" default="Octets(0)" />
+	</rpcdata>
+	<rpcdata name="RolenameExistsRes">
+		<variable name="retcode" type="int" default="-1" />
+		<variable name="zoneid" type="int" default="-1" />
+		<variable name="roleid" type="int" default="-1" />
+		<variable name="status" type="int" default="-1" />
+		<variable name="time" type="int" default="-1" />
+	</rpcdata>
+	<rpc debug="0" name="RolenameExists" type="3413" argument="RolenameExistsArg"
+		result="RolenameExistsRes" table="unamerole" attr="get" key="rolename"
+		value="roleid" retcode="retcode" maxsize="1024" prior="1" timeout="15" />
+
+	<rpcdata name="UserRoleCountArg">
+		<variable name="userid" type="int" default="-1" />
+	</rpcdata>
+	<rpcdata name="UserRoleCountRes">
+		<variable name="retcode" type="int" default="-1" />
+		<variable name="count" type="int" default="0" />
+		<variable name="rolelist" type="int" default="0" />
+	</rpcdata>
+	<rpc debug="0" name="UserRoleCount" type="3414" argument="UserRoleCountArg"
+		result="UserRoleCountRes" table="urole" attr="get" key="userid" value="rolelist"
+		retcode="retcode" maxsize="1024" prior="1" timeout="15" />
+
+	<rpcdata name="MoveRoleCreateArg">
+		<variable name="fromzoneid" type="int" default="-1" />
+		<variable name="zoneid" type="int" default="-1" />
+		<variable name="userid" type="int" default="-1" />
+		<variable name="rolename" type="Octets" attr="ref" default="Octets(0)" />
+	</rpcdata>
+	<rpcdata name="MoveRoleCreateRes">
+		<variable name="retcode" type="int" default="-1" />
+		<variable name="roleid" type="int" default="-1" />
+	</rpcdata>
+	<rpc debug="0" name="MoveRoleCreate" type="3415" argument="MoveRoleCreateArg"
+		result="MoveRoleCreateRes" table="unamerole" attr="get" key="rolename"
+		value="roleid" retcode="retcode" maxsize="1024" prior="1" timeout="15" />
+	<protocol debug="0" name="DisconnectPlayer" maxsize="64"
+		prior="1" type="106">
+		<variable name="roleid" type="int" />
+		<variable name="provider_link_id" type="int" default="-1" />
+		<variable name="localsid" type="int" default="0" />
+		<variable name="gameid" type="int" default="0" />
+	</protocol>
+	<protocol debug="0" name="GMShutup" maxsize="256" prior="1"
+		type="356">
+		<variable name="gmroleid" type="int" />
+		<variable name="localsid" type="int" />
+		<variable name="dstuserid" type="int" />
+		<variable name="forbid_time" type="int" />
+		<variable name="reason" type="Octets" attr="ref" default="Octets()" />
+	</protocol>
+	<protocol debug="0" name="GMShutup_Re" maxsize="64" prior="1"
+		type="357">
+		<variable name="retcode" type="int" />
+		<variable name="dstuserid" type="int" />
+		<variable name="forbid_time" type="int" />
+	</protocol>
+	<protocol debug="0" name="GMShutupRole" maxsize="256" prior="1"
+		type="362">
+		<variable name="gmroleid" type="int" />
+		<variable name="localsid" type="int" />
+		<variable name="dstroleid" type="int" />
+		<variable name="forbid_time" type="int" />
+		<variable name="reason" type="Octets" attr="ref" default="Octets()" />
+	</protocol>
+	<protocol debug="0" name="GMShutupRole_Re" maxsize="64" prior="1"
+		type="363">
+		<variable name="retcode" type="int" />
+		<variable name="dstroleid" type="int" />
+		<variable name="forbid_time" type="int" />
+	</protocol>
+
+
+
+	<state name="null" timeout="1800" attr="null" />
+
+	<state name="all" timeout="1800" attr="all" />
+
+	<state name="normal" timeout="86400">
+		<proto name="AnnounceChallengeAlgo" />
+		<proto name="WorldChat" />
+		<proto name="PutUser" />
+		<proto name="GetUser" />
+		<proto name="DBCreateRole" />
+		<proto name="DBDeleteRole" />
+		<proto name="PutRoleBase" />
+		<proto name="GetRoleBase" />
+		<proto name="PutRolePocket" />
+		<proto name="GetRolePocket" />
+		<proto name="PutRoleStatus" />
+		<proto name="GetRoleStatus" />
+		<proto name="PutRoleEquipment" />
+		<proto name="GetRoleEquipment" />
+		<proto name="PutRoleTask" />
+		<proto name="GetRoleTask" />
+		<proto name="PutRoleData" />
+		<proto name="GetRoleData" />
+		<proto name="PutRoleStorehouse" />
+		<proto name="GetRoleStorehouse" />
+		<proto name="SetMaxOnlineNum" />
+		<proto name="SetMaxOnlineNum_Re" />
+		<proto name="GetMaxOnlineNum" />
+		<proto name="GMGetGameAttri" />
+		<proto name="GMSetGameAttri" />
+		<proto name="GMControlGame" />
+		<proto name="GMControlGame_Re" />
+		<proto name="AnnounceServerAttribute" />
+		<proto name="GMRestartServer" />
+		<proto name="GMRestartServer_Re" />
+		<proto name="PublicChat" />
+		<proto name="ChatBroadCast" />
+		<proto name="ForwardChat" />
+		<proto name="QueryUserPrivilege_Re" />
+		<proto name="GQueryPasswd" />
+		<proto name="GMPrivilegeChange" />
+		<proto name="GetRoleId" />
+		<proto name="GMQueryRoleInfo" />
+		<proto name="AnnounceLinkType" />
+		<proto name="GMForbidRole" />
+		<proto name="GMForbidRole_Re" />
+		<proto name="Report2GM" />
+		<proto name="PrivateChat" />
+		<proto name="DBVerifyMaster" />
+		<proto name="SysSendMail" />
+		<proto name="SysSendMail_Re" />
+		<proto name="PreCreateRole" />
+		<proto name="PostCreateRole" />
+		<proto name="PostDeleteRole" />
+		<proto name="GetUserRoles" />
+		<proto name="ClearStorehousePasswd" />
+		<proto name="CanChangeRolename" />
+		<proto name="RenameRole" />
+		<proto name="Uid2Logicuid" />
+		<proto name="Roleid2Uid" />
+		<proto name="RolenameExists" />
+		<proto name="UserRoleCount" />
+		<proto name="MoveRoleCreate" />
+		<proto name="AnnounceChallengeAlgo" />
+		<proto name="QueryUserid" />
+		<proto name="DBModifyRoleData" />
+		<proto name="ForbidUser" />
+		<proto name="DisconnectPlayer" />
+		<proto name="GMShutupRole" />
+		<proto name="GMShutupRole_Re" />
+		<proto name="GMShutup" />
+		<proto name="GMShutup_Re" />
+		<proto name="DisableAutolock" />
+		<proto name="AnnounceAuthdVersion" />
+	</state>
+
+	<manager name="ClientManager" type="client" initstate="normal"
+		identification="IWEBClient" db="GameDB" />
+	<manager name="TestClientManager" type="client" initstate="normal"
+		identification="TestClient" db="TestDB" />
+	<manager name="DeliveryClientManager" type="client" initstate="normal"
+		identification="DeliveryClient" db="DeliveryDB" />
+	<manager name="FactionClientManager" type="client" initstate="normal"
+		identification="FactionClient" db="FactionDB" />
+	<manager name="UniquenameClientManager" type="client"
+		initstate="normal" identification="UniquenameClient" db="UniquenameDB" />
+	<security>
+		<entity class="com.goldhuman.Common.Security.NullSecurity"
+			name="NullSecurity" type="0" />
+		<entity class="com.goldhuman.Common.Security.Random" name="Random"
+			type="1" />
+		<entity class="com.goldhuman.Common.Security.ARCFourSecurity"
+			name="ARCFourSecurity" type="2" />
+		<entity class="com.goldhuman.Common.Security.MD5Hash" name="MD5Hash"
+			type="3" />
+		<entity class="com.goldhuman.Common.Security.HMAC_MD5Hash"
+			name="HMAC_MD5Hash" type="4" />
+	</security>
+</application>

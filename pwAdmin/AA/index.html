@@ -1,0 +1,60 @@
+<html>
+<head></head>
+<body>
+<center>
+
+<br>To make auto announcement work you must add it to your cron configuration:<br>
+{to edit what the announcement actually says edit /pwAdmin/AA/aa1.jsp}<br>
+(/etc/crontab) example:<br>
+</center>
+# /etc/crontab: system-wide crontab<br>
+# Unlike any other crontab you don't have to run the `crontab'<br>
+# command to install the new version when you edit this file<br>
+# and files in /etc/cron.d. These files also have username fields,<br>
+# that none of the other crontabs do.<br><br>
+
+SHELL=/bin/sh<br>
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin<br><br>
+
+# <font color="008000">m </font><font color="0000ff">h </font><font color="b8860b">dom </font><font color="8b008b">mon </font><font color="a52a2a">dow </font><font color="00cc00">user	</font><font color="808080">command<br></font>
+<font color="red">00 *    * * *   root    /etc/cron.pw/aa1.sh<br></font>
+#<br>
+
+<center>
+The preceeding example (adding the line in red) would make your auto announcement run once an hour, on the hour...<br>
+The format is as follows:<br>
+<font color="008000">M = Minute [0-59] - This controls what minute of the hour the command will run<br></font>
+<font color="0000ff">H = Hour [0-23] - This controls what hour of the day the command will run<br></font>
+<font color="b8860b">DOM = Day of Month [1-31] - This controls what day of the month the command will run<br></font>
+<font color="8b008b">MON = Month [1-12]or[Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec] - This controls what month of a year the command will run<br></font>
+<font color="a52a2a">DOW = Day of Week [0-6]or[Sun Mon Tue Wed Thu Fri Sat] - This controls what day of the week the command will run<br></font>
+<font color="00cc00">USER = User [root] - This is the user who runs the command<br></font>
+<font color="808080">CMD = Command [/etc/cron.pw/aa1.sh] - This is the command you desire to run<br></font>
+* = Wildcard - This is for not assigning a specific variable to a parameter<br>
+
+More examples (adding the following lines would):<br>
+</center>
+<font color="red">
+0 * * * * root /etc/cron.pw/aa1.sh &nbsp &nbsp &nbsp &nbsp &nbsp # Run once an hour [@hourly]<br>
+0 0 * * * root /etc/cron.pw/aa1.sh &nbsp &nbsp &nbsp &nbsp &nbsp # Run once a day [@midnight]or[@daily]<br>
+0 0 * * 0 root /etc/cron.pw/aa1.sh &nbsp &nbsp &nbsp &nbsp &nbsp # Run once a week [@weekly]<br>
+0 0 1 * * root /etc/cron.pw/aa1.sh &nbsp &nbsp &nbsp &nbsp &nbsp # Run once a month [@monthly]<br>
+0 0 1 1 * root /etc/cron.pw/aa1.sh &nbsp &nbsp &nbsp &nbsp &nbsp # Run once a year [@yearly]or[@annually]<br>
+@reboot root /etc/cron.pw/aa1.sh &nbsp &nbsp &nbsp &nbsp &nbsp # Run @reboot (or any time the cron daemon is started/re-started)<br>
+*/5 * * * * root /etc/cron.pw/aa1.sh &nbsp &nbsp &nbsp &nbsp &nbsp # Run every 5 minutes<br>
+
+01 * * * * root /etc/cron.pw/aa1.sh &nbsp &nbsp &nbsp &nbsp &nbsp # This command would be ran at one min past every hour<br>
+17 8 * * * root /etc/cron.pw/aa1.sh &nbsp &nbsp &nbsp &nbsp &nbsp # This comman would be ran daily at 8:17 AM<br>
+17 20 * * * root /etc/cron.pw/aa1.sh &nbsp &nbsp &nbsp &nbsp &nbsp # This command would be ran daily at 8:17 PM<br>
+00 4 * * 0 root /etc/cron.pw/aa1.sh &nbsp &nbsp &nbsp &nbsp &nbsp # This command would be ran at 4:00 AM every SUNDAY<br>
+* 4 * * Sun root /etc/cron.pw/aa1.sh &nbsp &nbsp &nbsp &nbsp &nbsp # This command would be ran at 4:00 AM every SUNDAY -- as well<br>
+42 4 1 * * root /etc/cron.pw/aa1.sh &nbsp &nbsp &nbsp &nbsp &nbsp # This command would be ran at 4:42 AM every 1st of the month<br>
+01 * 19 07 * root /etc/cron.pw/aa1.sh &nbsp &nbsp &nbsp &nbsp &nbsp # This command would be ran HOURLY on the 19th of JULY<br><br>
+</font>
+<center>
+You can also make more than one by merely duplicating<br>/pwAdmin/AA/aa1.jsp ==> /pwAdmin/AA/aa2.jsp (edit for new announcement)<br>&<br>/etc/cron.pw/aa1.sh ==> /etc/cron.pw/aa2.sh (edit so it points to new [aa2].jsp)<br>and so on (just do not forget to also add them to crontable as well!)
+
+</center>
+</font>
+</body>
+</html>
